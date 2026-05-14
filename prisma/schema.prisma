@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique
+  name          String
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  role          Role           @default(USER)
+  sessions      Session[]
+  subscriptions Subscription[]
+  plans         plans[]
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  refreshToken String   @unique
+  ipAddress    String
+  userAgent    String
+  createdAt    DateTime @default(now())
+  expiredAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subscription {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  planId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      plans     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  status    Status    @default(INACTIVE)
+  payments  Payment[]
+  createdAt DateTime  @default(now())
+  expiredAt DateTime  @updatedAt
+
+  @@index([userId, planId])
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  CANCELED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model plans {
+  id            String         @id @default(uuid()) @db.Uuid
+  name          PlanName
+  price         Float
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     String         @db.Uuid
+  user          User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+}
+
+enum PlanName {
+  JOLLY
+  BETTER
+  SUPER
+}
+
+model Payment {
+  id             String       @id @default(uuid()) @db.Uuid
+  subscriptionId String       @db.Uuid
+  amount         Float
+  createdAt      DateTime     @default(now())
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+}

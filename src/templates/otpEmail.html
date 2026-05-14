@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OTP Verification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #060f1a;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 40px 16px;
+    }
+
+    .wrapper {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* Top bar */
+    .top-bar {
+      background: linear-gradient(90deg, #00c896, #0080ff);
+      height: 4px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    /* Card */
+    .card {
+      background: #0d1f35;
+      border: 1px solid rgba(0, 200, 150, 0.15);
+      border-top: none;
+      border-radius: 0 0 20px 20px;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      padding: 48px 48px 36px;
+      position: relative;
+      background: radial-gradient(ellipse at top center, rgba(0,128,255,0.12) 0%, transparent 70%);
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #00c896, #0080ff);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .shield-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .shield-bg {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, rgba(0,200,150,0.15), rgba(0,128,255,0.15));
+      border: 1.5px solid rgba(0,200,150,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .shield-bg::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,200,150,0.1);
+    }
+
+    .shield-bg svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      text-align: center;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 14.5px;
+      color: #7a9bbf;
+      text-align: center;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,200,150,0.2), rgba(0,128,255,0.2), transparent);
+      margin: 0 48px;
+    }
+
+    /* Body */
+    .body {
+      padding: 36px 48px;
+    }
+
+    .greeting {
+      font-size: 14.5px;
+      color: #7a9bbf;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .greeting span {
+      color: #cde4ff;
+      font-weight: 500;
+    }
+
+    /* OTP Box */
+    .otp-container {
+      background: linear-gradient(135deg, rgba(0,200,150,0.07), rgba(0,128,255,0.07));
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .otp-container::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 80px;
+      background: radial-gradient(ellipse, rgba(0,200,150,0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    .otp-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #00c896;
+      margin-bottom: 16px;
+    }
+
+    .otp-digits {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .digit {
+      width: 60px;
+      height: 68px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(0,128,255,0.35);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -1px;
+      position: relative;
+    }
+
+    .digit::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      width: 80%;
+      height: 2px;
+      background: linear-gradient(90deg, #00c896, #0080ff);
+      border-radius: 2px;
+    }
+
+    .otp-timer {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: #5a7a9a;
+      font-weight: 400;
+    }
+
+    .otp-timer svg {
+      width: 13px;
+      height: 13px;
+      stroke: #00c896;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* Info list */
+    .info-list {
+      list-style: none;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .info-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: #6a8eae;
+      line-height: 1.5;
+    }
+
+    .info-list li .dot {
+      width: 6px;
+      height: 6px;
+      min-width: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00c896, #0080ff);
+      margin-top: 6px;
+    }
+
+    /* Warning box */
+    .warning {
+      background: rgba(255, 100, 80, 0.07);
+      border: 1px solid rgba(255, 100, 80, 0.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .warning svg {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      stroke: #ff8070;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      margin-top: 1px;
+    }
+
+    .warning p {
+      font-size: 13px;
+      color: #c0847a;
+      line-height: 1.5;
+    }
+
+    .warning strong {
+      color: #ff9080;
+      font-weight: 500;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 24px 48px 36px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: #3a6080;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-copy {
+      font-size: 11.5px;
+      color: #2a4060;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .footer-copy a {
+      color: #00c896;
+      text-decoration: none;
+    }
+
+    /* Bottom gradient line */
+    .bottom-glow {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,128,255,0.4), rgba(0,200,150,0.4), transparent);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="top-bar"></div>
+    <div class="card">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-row">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <span class="logo-text">YourApp</span>
+        </div>
+
+        <div class="shield-wrap">
+          <div class="shield-bg">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#00c896"/>
+                  <stop offset="100%" stop-color="#0080ff"/>
+                </linearGradient>
+              </defs>
+              <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6L12 2z" stroke="url(#sg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 12l2 2 4-4" stroke="url(#sg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <h1>Verify Your Identity</h1>
+        <p class="subtitle">Use the one-time passcode below to<br/>securely sign in to your account.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Body -->
+      <div class="body">
+        <p class="greeting">Hi <span>{{user_name}}</span>, we received a sign-in request for your account. Enter the code below to continue.</p>
+
+        <!-- OTP Box -->
+        <div class="otp-container">
+          <p class="otp-label">Your One-Time Passcode</p>
+          <div class="otp-digits">
+            <div class="digit">{{d1}}</div>
+            <div class="digit">{{d2}}</div>
+            <div class="digit">{{d3}}</div>
+            <div class="digit">{{d4}}</div>
+          </div>
+          <span class="otp-timer">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Expires in 5 minutes
+          </span>
+        </div>
+
+        <!-- Info -->
+        <ul class="info-list">
+          <li><span class="dot"></span>This code is valid for a single use only and expires in 5 minutes.</li>
+          <li><span class="dot"></span>If you didn't request this, you can safely ignore this email.</li>
+          <li><span class="dot"></span>After 3 failed attempts, your code will be invalidated and you'll need to request a new one.</li>
+        </ul>
+
+        <!-- Warning -->
+        <div class="warning">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <p><strong>Never share this code.</strong> YourApp will never ask for your OTP via phone, chat, or email.</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-links">
+          <a href="#">Help Center</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Unsubscribe</a>
+        </div>
+        <p class="footer-copy">
+          © 2026 YourApp Inc. · 123 Tech Avenue, Lagos, Nigeria<br/>
+          Questions? <a href="mailto:support@yourapp.com">support@yourapp.com</a>
+        </p>
+        <div class="bottom-glow"></div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

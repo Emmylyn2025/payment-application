@@ -1,0 +1,26 @@
+import redis from "../redis/redisClient";
+
+export const setCache = async (key: string, value: string, ttl: number) => {
+  try {
+    await redis.set(key, value, "EX", ttl);
+  } catch (error) {
+    console.error("Error setting cache:", error);
+  }
+}
+
+export const getCache = async (key: string): Promise<string | null> => {
+  try {
+    const value = await redis.get(key);
+    return value;
+  } catch (error) {
+    console.error("Error getting cache:", error);
+    return null;
+  }
+}
+export const deleteCache = async (key: string) => {
+  try {
+    await redis.del(key);
+  } catch (error) {
+    console.error("Error deleting cache:", error);
+  }
+}
