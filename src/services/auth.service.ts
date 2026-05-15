@@ -2,7 +2,7 @@ import { hashPassword } from "../utils/password";
 import { prisma } from "../lib/prisma";
 import { UserReturnType } from "../types/types";
 import { removePassword } from "../utils/password";
-import { findUserByEmail, getSession, newSession, updateUser } from "../serviceFunctions/findUsers";
+import { findUserByEmailWithPassword, getSession, newSession, updateUser } from "../serviceFunctions/findUsers";
 import { comparePassword } from "../utils/password";
 import { generateTokens, verifyRefreshToken, generateRandomToken } from "../utils/token";
 import { hashToken } from "../utils/token";
@@ -16,10 +16,10 @@ export async function registerUserService<T extends { name: string; email: strin
   const { name, email, password } = body;
 
   //Check if user already exists
-  const existingUser = await findUserByEmail(email);
+  const existingUser = await findUserByEmailWithPassword(email);
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new appError("User already exists", 400);
   }
 
   //If user does not exist, hash the password and create the user
@@ -42,7 +42,7 @@ export async function registerUserService<T extends { name: string; email: strin
 export async function loginUserService<T extends { email: string; password: string, ip: string, userAgent: string }>(body: T, req?: Request) {
   const { email, password, ip, userAgent } = body;
 
-  const user = await findUserByEmail(email);
+  const user = await findUserByEmailWithPassword(email);
 
   if (!user) {
     throw new appError("Invalid credentials", 401);
@@ -91,7 +91,7 @@ export async function loginUserService<T extends { email: string; password: stri
   const userWithoutPassword = removePassword(user);
 
   //Save the session in cache
-  await setCache(`session:${session.id}`, JSON.stringify(updatedSession), 10 * 60); //Expire in 7 days
+  await setCache(`session:${session.id}`, JSON.stringify(updatedSession), 10 * 60); //Expire in 10 minutes
 
   return { ...userWithoutPassword, accessToken, refreshToken };
 }
@@ -100,7 +100,7 @@ export async function forgotPasswordService<T extends { email: string }>(body: T
   
   const { email } = body;
 
-  const user = await findUserByEmail(email);
+  const user = await findUserByEmailWithPassword(email);
 
   if (!user) throw new appError("User not found", 404);
 

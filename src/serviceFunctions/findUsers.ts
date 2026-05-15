@@ -1,26 +1,72 @@
+import { Select } from "@prisma/client/runtime/client";
 import { prisma } from "../lib/prisma";
 import { UserReturnType, UpdateUserInput } from "../types/types";
+import { Prisma } from "@prisma/client";
+import { AllUsersReturnType } from "../types/types";
 
-export async function findUserByEmail(email: string) : Promise<UserReturnType | null> {
+const defaultUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  createdAt: true,
+  role: true,
+  updatedAt: true
+} satisfies Prisma.UserSelect
 
-  const user = await prisma.user.findUnique({
+type DefaultUser = Prisma.UserGetPayload<{select: typeof defaultUserSelect}>
+
+export async function findUserByEmail<T extends Prisma.UserSelect>(email: string, select?: T): Promise<DefaultUser | Prisma.UserGetPayload<{ select: T }> | null> {
+  
+  const hasSelect = select && Object.keys(select).length > 0
+
+  if (hasSelect) {
+    return await prisma.user.findUnique({
+      where: {
+        email
+      },
+      select
+    })
+  }
+
+  return prisma.user.findUnique({
     where: {
       email
-    }
-  });
-
-  return user;
+    },
+    select: defaultUserSelect
+  }) 
+  
 }
 
-export async function findUserById(id: string) : Promise<UserReturnType | null> {
+export async function findUserByEmailWithPassword(email: string) {
+  return await prisma.user.findUnique({
+    where: {email}
+  })
+}
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id
-    }
-  });
+export async function findUserById<T extends Prisma.UserSelect>(id: string, select?: T): Promise<DefaultUser | Prisma.UserGetPayload<{ select: T }> | null> {
 
-  return user;
+  const hasSelect = select && Object.keys(select).length > 0
+  
+  if (hasSelect) {
+    return await prisma.user.findUnique({
+      where: { id },
+      select
+    });
+  }
+
+  return await prisma.user.findUnique({
+    where: { id },
+    select: defaultUserSelect
+  }) 
+  
+}
+
+export function selectSome<T extends Record<string, unknown>>(query: T, validFields: Set<keyof T>): Partial<{[k in keyof T]: true}> {
+  return Object.fromEntries(
+    Object.keys(query)
+      .filter((key) => validFields.has(key as keyof T))
+      .map((key) => [key, true])
+  ) as Partial<{[k in keyof T]: true}>
 }
 
 export async function newSession(userId: string, ip: string, userAgent: string) {
@@ -74,4 +120,15 @@ export async function updateUser(id: string, data: UpdateUserInput) {
     },
     data
   })
+}
+
+export async function deleteUser(id: string) {
+  return await prisma.user.delete({
+    where: { id }
+  });
+}
+
+
+export async function getData<T extends Record<string, unknown>>(reqQuery?: T, ) {
+
 }

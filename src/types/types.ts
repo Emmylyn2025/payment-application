@@ -11,6 +11,8 @@ export type UserReturnType = {
   role: Role;
 }
 
+export type AllUsersReturnType = Omit<UserReturnType, 'password'>;
+
 export type apiResponse<T> = {
   success: boolean;
   data?: T;
@@ -28,4 +30,4 @@ declare global {
   }
 }
 
-export type UpdateUserInput = Partial<Pick<UserReturnType, "name" | "email" | "password" | "role">>
+export type UpdateUserInput = Partial<Pick<UserReturnType, "name" | "password" | "role">>
