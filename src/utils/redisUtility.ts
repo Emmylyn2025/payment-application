@@ -24,3 +24,16 @@ export const deleteCache = async (key: string) => {
     console.error("Error deleting cache:", error);
   }
 }
+
+export const deletePattern = async (pattern: string) => {
+  try {
+    const keys = await redis.keys(pattern);
+
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+    
+  } catch (error) {
+    console.log("Error occured deleting pattern", error);
+  }
+}
