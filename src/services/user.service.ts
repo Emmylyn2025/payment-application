@@ -3,15 +3,14 @@ import { appError } from "../utils/error";
 import { Prisma } from "@prisma/client";
 import { hashPassword } from "../utils/password";
 import { UpdateUserInput } from "../types/types";
-import { setCache, getCache, deletePattern } from "../utils/redisUtility";
-import crypto from "crypto"
+import { setCache, getCache, deletePattern, hashReq } from "../utils/redisUtility";
 
 export async function getUserService<T>(userId: string, reqQuery?: T) {
 
   const queryObject = selectSome<Prisma.UserSelect>(reqQuery!, new Set(["id", "name", "email", "role", "createdAt", "updatedAt"]))
 
   //Hash the reqQuery object
-  const hashedReqQuery = crypto.createHash("md5").update(JSON.stringify(reqQuery)).digest("hex");
+  const hashedReqQuery = hashReq(reqQuery!);
 
   //Get user from redis before checking the database
   const cachedUser = await getCache(`userdata:${userId}:${hashedReqQuery}`);
@@ -58,11 +57,13 @@ export async function updateUserService<T extends UpdateUserInput>(userId: strin
     const hashed = await hashPassword(reqBody.password)
 
     await deletePattern(`userdata:${userId}:*`);
+    await deletePattern(`users:*`);
 
     return await updateUser(userId, { ...reqBody, password: hashed });
   }
 
   await deletePattern(`userdata:${userId}:*`);
+  await deletePattern(`users:*`);
 
   return await updateUser(userId, reqBody)
 }
@@ -89,6 +90,7 @@ export async function deleteUserService(userId: string, requesterId: string) {
   const deleted = await deleteUser(userId);
 
   await deletePattern(`userdata:${userId}:*`);
+  await deletePattern(`users:*`);
 
   return deleted;
 }

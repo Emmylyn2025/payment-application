@@ -1,4 +1,5 @@
 import redis from "../redis/redisClient";
+import crypto from "crypto"
 
 export const setCache = async (key: string, value: string, ttl: number) => {
   try {
@@ -36,4 +37,8 @@ export const deletePattern = async (pattern: string) => {
   } catch (error) {
     console.log("Error occured deleting pattern", error);
   }
+}
+
+export const hashReq = (reqQuery: Record<string, unknown>) => {
+  return crypto.createHash("md5").update(JSON.stringify(reqQuery)).digest("hex");
 }

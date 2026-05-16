@@ -52,7 +52,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         return next(new appError("Unauthorized: Invalid token", 401));
       }
 
-      if (new Date(dbSession.expiredAt) <= new Date()) {
+      if (new Date(dbSession.expiredAt!) <= new Date()) {
         //Delete session from database
         await deleteSession(dbSession!.id);
         return next(new appError("Session is expired", 401));
@@ -66,4 +66,12 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     console.log(error);
     return next(new appError("Unauthorized: Invalid token", 401));
   }
+}
+
+export const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const role = req.user?.role;
+
+  if (role !== 'ADMIN') throw new appError("You can't take this action", 403);
+
+  next();
 }

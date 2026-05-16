@@ -5,6 +5,8 @@ import { createApiResponse } from "../utils/apiResponse";
 import { UpdateUserInput } from "../types/types";
 import { removeField } from "../utils/password";
 import { prisma } from "../lib/prisma";
+import { buildWhere, buildPagination, buildOrderBy, buildSelect } from "../utils/QueryBuilder";
+import { getCache, hashReq, setCache } from "../utils/redisUtility";
 
 export const me = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const userId = req.user?.id as string;
@@ -13,7 +15,7 @@ export const me = asyncHandler(async (req: Request, res: Response, next: NextFun
   const user = await getUserService<typeof query>(userId, query);
 
   res.status(200).json(createApiResponse(true, user, "User Data"));
-})
+});
 
 export const users = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -21,76 +23,41 @@ export const users = asyncHandler(async (req: Request, res: Response, next: Next
 
   const { sort, page, limit, fields, ...filters } = req.query;
 
-  //Filters side
-  const filterKeys = Object.keys(filters);
-
-  let where: Record<string, unknown> = {};
-
   const stringFields = ["name", "email", "role"];
-  
-  const safeFields = filterKeys.filter((key) => allowedFields.includes(key));
 
-  for (const key of safeFields) {
-    if (stringFields.includes(key) && typeof filters[key] === 'string') {
-      where[key] = {contains: filters[key], mode: 'insensitive'}
-    } else {
-      where[key] = filters[key];
-    }
+  const where = buildWhere(filters, allowedFields, stringFields);
+
+  const select = buildSelect(fields, allowedFields);
+
+  const orderBy = buildOrderBy(sort, allowedFields);
+
+  const { skip, take } = buildPagination(page, limit);
+
+  //Get data from cache
+  const cachedData = await getCache(`users:${hashReq(req.query)}`);
+
+  if (cachedData) {
+    return res.status(200).json(createApiResponse(true, JSON.parse(cachedData), "Users retrieved from cache"));
   }
 
-  //Select side
-  const defaultSelect: Record<string, boolean> = Object.fromEntries(allowedFields.map((key) => [key, true])); 
+  const users = await prisma.user.findMany({
+    where,
+    select,
+    orderBy,
+    skip,
+    take
+  });
 
-  let select: Record<string, boolean> | undefined = defaultSelect;
-
-  if (fields) {
-    const selectedFields = typeof fields === 'string' ? fields.split(',') : [];
-
-    const safeFields = selectedFields
-      .filter((key) => key !== 'password' && allowedFields.includes(key))
-      .map((key) => [key, true]);
-
-    if (safeFields.length > 0) {
-      select = Object.fromEntries(safeFields);
-    }
-  }
-  
-  // Sort side
-  let orderBy = undefined;
-
-  if (sort) {
-    const selectedSorts = typeof sort === 'string' ? sort.split(',') : [];
-
-    const safeSorts = selectedSorts.filter((elem) =>
-      allowedFields.includes(elem.startsWith('-') ? elem.substring(1) : elem)
-    );
-
-    if (safeSorts.length > 0) {
-      orderBy = safeSorts.map((elem) => {
-        if (elem.startsWith('-')) {
-          return { [elem.substring(1)]: 'desc' };
-        }
-        return { [elem]: 'asc' };
-      });
-    }
+  //If length is 0
+  if (users.length === 0) {
+    return res.status(204).json(createApiResponse(true, [], "Users record is empty"));
   }
 
-  //Page and limit
-  let currentPage = Number(page) || 2;
-  let take = Number(limit) || 1
+  //Set data in cache for 10 minutes
+  await setCache(`users:${hashReq(req.query)}`, JSON.stringify(users), 600);
 
-  const skip = (currentPage - 1) * take;
-
-const users = await prisma.user.findMany({
-  where,
-  select,
-  orderBy,
-  skip,
-  take
+  res.status(200).json(createApiResponse(true, users, "Users retrieved database"));
 });
-
-  res.status(200).json(createApiResponse(true, users, "Users retrieved"));
-})
 
 export const update = asyncHandler(async (req: Request<{ id: string }, {}, {}, UpdateUserInput>, res: Response, next: NextFunction) => {
   const userId = req.params.id
@@ -115,4 +82,4 @@ export const deleteUser = asyncHandler(async (req: Request<{ id: string }>, res:
   const withoutPassword = removeField(user, "password");
 
   res.status(200).json(createApiResponse(true, withoutPassword, "User deleted"));
-})
+});
