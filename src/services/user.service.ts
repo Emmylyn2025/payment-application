@@ -7,7 +7,9 @@ import { setCache, getCache, deletePattern, hashReq } from "../utils/redisUtilit
 
 export async function getUserService<T>(userId: string, reqQuery?: T) {
 
-  const queryObject = selectSome<Prisma.UserSelect>(reqQuery!, new Set(["id", "name", "email", "role", "createdAt", "updatedAt"]))
+  const queryObject = selectSome<Prisma.UserSelect>(reqQuery!, new Set(["id", "name", "email", "role", "createdAt", "updatedAt", "subscriptions", "sessions"]));
+
+  const hasSelect = queryObject && Object.keys(queryObject).length > 0;
 
   //Hash the reqQuery object
   const hashedReqQuery = hashReq(reqQuery!);
@@ -19,7 +21,9 @@ export async function getUserService<T>(userId: string, reqQuery?: T) {
     return JSON.parse(cachedUser);
   }
 
-  const user = await findUserById(userId, queryObject);
+  const user = await findUserById(userId, {
+    select: hasSelect ? queryObject : undefined
+  });
 
   if (!user) throw new appError("User not found", 404); 
 
