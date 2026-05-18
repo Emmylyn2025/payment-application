@@ -43,14 +43,21 @@ export async function findUserByEmailWithPassword(email: string) {
   })
 }
 
-export async function findUserById<T extends Prisma.UserSelect>(id: string, select?: T): Promise<DefaultUser | Prisma.UserGetPayload<{ select: T }> | null> {
+export async function findUserById<T extends Prisma.UserSelect, I extends Prisma.UserInclude>(id: string, options?: {select?: T, include?: I}): Promise<DefaultUser | Prisma.UserGetPayload<{ select: T }> | Prisma.UserGetPayload<{include: T}> | null> {
 
-  const hasSelect = select && Object.keys(select).length > 0
+  const { select, include } = options ?? {};
   
-  if (hasSelect) {
+  if (select && Object.keys(select).length > 0) {
     return await prisma.user.findUnique({
       where: { id },
       select
+    });
+  }
+
+  if (include && Object.keys(include).length > 0) {
+    return await prisma.user.findUnique({
+      where: { id },
+      include
     });
   }
 
@@ -61,13 +68,19 @@ export async function findUserById<T extends Prisma.UserSelect>(id: string, sele
   
 }
 
-export function selectSome<T extends Record<string, unknown>>(query: T, validFields: Set<keyof T>): Partial<{[k in keyof T]: true}> {
+export function selectSome<T extends Record<string, unknown>>(
+  query: T,
+  validFields: Set<keyof T>
+): Partial<{ [k in keyof T]: true }> {
+  if (!query) return {};
+  
   return Object.fromEntries(
     Object.keys(query)
-      .filter((key) => validFields.has(key as keyof T))
+      .filter((key) => validFields.has(key as keyof T) && query[key] !== "false" && query[key] !== false)
       .map((key) => [key, true])
-  ) as Partial<{[k in keyof T]: true}>
+  ) as Partial<{ [k in keyof T]: true }>;
 }
+
 
 export async function newSession(userId: string, ip: string, userAgent: string) {
 

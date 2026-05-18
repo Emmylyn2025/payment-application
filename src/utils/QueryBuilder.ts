@@ -2,6 +2,21 @@ import { Request } from 'express';
 
 type QueryValue = Request['query'][string];
 
+
+const numericOperators = ['gt', 'gte', 'lt', 'lte'];
+
+const parseValue = (value: string) => {
+  // Check if value has an operator prefix e.g. "gte:100"
+  const [prefix, ...rest] = value.split(':');
+  
+  if (numericOperators.includes(prefix) && rest.length > 0) {
+    const parsed = rest.join(':'); // handles values that contain colons e.g. dates
+    return { [prefix]: isNaN(Number(parsed)) ? parsed : Number(parsed) };
+  }
+
+  return null; // no operator found
+};
+
 export const buildWhere = (
   filters: Record<string, QueryValue>,
   allowedFields: string[],
@@ -11,7 +26,16 @@ export const buildWhere = (
   const safeFields = Object.keys(filters).filter((key) => allowedFields.includes(key));
 
   for (const key of safeFields) {
-    if (stringFields.includes(key) && typeof filters[key] === 'string') {
+
+    const value = filters[key];
+
+    if (typeof value !== 'string') continue;
+
+    const operator = parseValue(value);
+
+    if (operator) {
+      where[key] = operator
+    } else if (stringFields.includes(key)) {
       where[key] = { contains: filters[key], mode: 'insensitive' };
     } else {
       where[key] = filters[key];
@@ -31,6 +55,7 @@ export const buildSelect = (
 
   if (!fields) return defaultSelect;
 
+  console.log(fields);
   const selectedFields = typeof fields === 'string' ? fields.split(',') : [];
 
   const safeFields = selectedFields

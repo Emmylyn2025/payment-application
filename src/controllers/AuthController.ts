@@ -97,7 +97,7 @@ export const refreshController = asyncHandler(async (req: Request, res: Response
   }
 
   //Check if session is expired 
-  if (new Date(dbSession?.expiredAt) <= new Date()) {
+  if (new Date(dbSession?.expiredAt!) <= new Date()) {
     //Delete session from database
     await deleteSession(dbSession?.id);
     return next(new appError("Expired session", 401));

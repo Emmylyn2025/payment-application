@@ -11,6 +11,8 @@ export type UserReturnType = {
   role: Role;
 }
 
+export type updatePlanType = Partial<Pick<UserReturnType, "name"> & { price: number, interval: 'MONTHLY' | 'YEARlY' }>;
+
 export type AllUsersReturnType = Omit<UserReturnType, 'password'>;
 
 export type apiResponse<T> = {
