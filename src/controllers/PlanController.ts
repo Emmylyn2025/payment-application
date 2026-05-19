@@ -5,6 +5,7 @@ import { createApiResponse } from "../utils/apiResponse";
 import { buildWhere, buildPagination, buildOrderBy, buildSelect } from "../utils/QueryBuilder";
 import { prisma } from "../lib/prisma";
 import { updatePlanType } from "../types/types";
+import { getCache, hashReq, setCache } from "../utils/redisUtility";
 
 export const createPlanController = asyncHandler(async (req: Request<{}, {}, { name: string, price: number }>, res: Response, next: NextFunction) => {
   const newPlan = await createPlanService(req.body);
@@ -26,6 +27,11 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
 
   const stringFields = ["name", "interval"];
 
+  //Check cache
+  const plansData = await getCache(`plans:${hashReq(req.query)}`);
+
+  if (plansData) return res.status(200).json(createApiResponse(true, "Data retreived from cache"));
+
   const { sort, page, limit, fields, ...filters } = req.query;
 
 
@@ -44,6 +50,9 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
     skip,
     take
   });
+
+  //Save plan data in cache
+  await setCache(`plans:${hashReq(req.query)}`, JSON.stringify(plans), 60 * 10);
 
   //If length is 0
   if (plans.length === 0) {
