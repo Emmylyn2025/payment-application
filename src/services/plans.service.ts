@@ -9,7 +9,7 @@ export async function createPlanService<T extends {name: string, price: number}>
   //Check if plan exists before
   const plan = await findPlans(body.name);
 
-  if (plan) throw new appError("The plan name exists", 400)
+  if (plan) throw new appError("The plan name exists", 422)
   
   //If plan name does not exists create a new plan
   const newPlan = await createPlans(body);

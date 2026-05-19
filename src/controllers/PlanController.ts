@@ -64,7 +64,7 @@ export const getAllPlans = asyncHandler(async (req: Request, res: Response, next
 
 export const updatePlan = asyncHandler(async (req: Request<{ id: string }, {}, updatePlanType>, res: Response, next: NextFunction) => {
   const planId = req.params.id;
-  const updatedPlan = await updatePlanService(planId, req.query);
+  const updatedPlan = await updatePlanService(planId, req.body);
 
   res.status(200).json(createApiResponse(true, updatedPlan, "Plan updated"));
 });

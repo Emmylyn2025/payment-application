@@ -19,7 +19,7 @@ export async function registerUserService<T extends { name: string; email: strin
   const existingUser = await findUserByEmailWithPassword(email);
 
   if (existingUser) {
-    throw new appError("User already exists", 400);
+    throw new appError("User already exists", 422);
   }
 
   //If user does not exist, hash the password and create the user
