@@ -22,7 +22,7 @@ router.get('/users', authMiddleware, users);
 router.delete('/users/:id', authMiddleware, deleteUser);
 
 //Plan routes
-router.post('/plans', authMiddleware, createPlanController);
+router.post('/plans', authMiddleware, adminMiddleware, createPlanController);
 router.get('/plans/:id', authMiddleware, getSinglePlan);
 router.get('/plans', authMiddleware, getAllPlans);
 router.put('/plans/:id', authMiddleware, adminMiddleware, updatePlan);

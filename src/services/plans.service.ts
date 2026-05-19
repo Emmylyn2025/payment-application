@@ -3,15 +3,20 @@ import { findPlans, createPlans, getPlanById, updatePlans, deletePlan } from "..
 import { selectSome } from "../serviceFunctions/findUsers";
 import { Prisma } from "@prisma/client";
 import { updatePlanType } from "../types/types";
+import { setCache, getCache, deleteCache, deletePattern, hashReq } from "../utils/redisUtility";
 
 export async function createPlanService<T extends {name: string, price: number}>(body: T) {
   //Check if plan exists before
   const plan = await findPlans(body.name);
 
-  if (plan) throw new appError("The plan name exists", 400)
+  if (plan) throw new appError("The plan name exists", 422)
   
   //If plan name does not exists create a new plan
   const newPlan = await createPlans(body);
+
+  //Clear plan cache
+  await deletePattern(`plandata:*`);
+  await deletePattern(`plans:*`);
 
   return newPlan;
 }
@@ -25,6 +30,12 @@ export async function getPlanByIdService<T extends Record<string, unknown>>(
     "categories", "subscriptions"
   ]));
 
+  const hashedQuery = hashReq(reqQuery!);
+
+  const cachedPlan = await getCache(`plandata:${id}${hashedQuery}`);
+
+  if (cachedPlan) return JSON.parse(cachedPlan);
+
   const hasSelect = selectObject && Object.keys(selectObject).length > 0;
 
   // Always use select — relations are valid inside select too
@@ -33,6 +44,9 @@ export async function getPlanByIdService<T extends Record<string, unknown>>(
   });
 
   if (!plan) throw new appError("Plan not found", 404);
+
+  //Save plan in cache
+  await setCache(`plandata:${id}${hashedQuery}`, JSON.stringify(plan), 60 * 10);
 
   return plan;
 }
@@ -63,6 +77,10 @@ export async function updatePlanService<T extends updatePlanType>(id: string, re
   //If the plan is found then update the plan
   const updated = await updatePlans(id, reqBody);
 
+  //Clear plan cache
+  await deletePattern(`plandata:*`);
+  await deletePattern(`plans:*`);
+
   return updated;
 }
 
@@ -75,6 +93,10 @@ export async function deletePlanService(id: string) {
 
   //delete the plan
   const deleted = await deletePlan(id);
+
+  //Clear plan cache
+  await deletePattern(`plandata:*`);
+  await deletePattern(`plans:*`);
 
   return deleted;
 }
