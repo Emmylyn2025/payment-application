@@ -1,6 +1,7 @@
 import express from 'express';
 import { registerUserController, loginUserController, refreshController, logoutController, forgotPasswordController, resetPasswordController } from '../controllers/AuthController';
 import { createPlanController, getSinglePlan, getAllPlans, updatePlan, deletePlan } from '../controllers/PlanController';
+import { createCategoryController, getCategoryByIdController, getAllCategoryController, updateCategoryController, deleteCategoryController } from '../controllers/categoryController';
 import { me, update, users, deleteUser } from "../controllers/userController";
 import { adminMiddleware, authMiddleware } from '../middleware/authMiddleware';
 
@@ -27,6 +28,13 @@ router.get('/plans/:id', authMiddleware, getSinglePlan);
 router.get('/plans', authMiddleware, getAllPlans);
 router.put('/plans/:id', authMiddleware, adminMiddleware, updatePlan);
 router.delete('/plans/:id', authMiddleware, adminMiddleware, deletePlan);
+
+//Category routes
+router.post('/category/:id', authMiddleware, adminMiddleware, createCategoryController);
+router.get('/category/:id', authMiddleware, getCategoryByIdController);
+router.get('/category', authMiddleware, getAllCategoryController);
+router.put('/category/:id', authMiddleware, adminMiddleware, updateCategoryController);
+router.delete('/category/:id', authMiddleware, adminMiddleware, deleteCategoryController);
 
 
 export default router;
