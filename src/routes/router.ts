@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUserController, loginUserController, refreshController, logoutController, forgotPasswordController, resetPasswordController } from '../controllers/AuthController';
+import { registerUserController, loginUserController, refreshController, logoutController, forgotPasswordController, resetPasswordController, verifyEmailController } from '../controllers/AuthController';
 import { createPlanController, getSinglePlan, getAllPlans, updatePlan, deletePlan } from '../controllers/PlanController';
 import { createCategoryController, getCategoryByIdController, getAllCategoryController, updateCategoryController, deleteCategoryController } from '../controllers/categoryController';
 import { me, update, users, deleteUser } from "../controllers/userController";
@@ -9,6 +9,7 @@ const router = express.Router();
 
 //Auth routes
 router.post('/register', registerUserController);
+router.get('/verify-email/:token', verifyEmailController);
 router.post('/login', loginUserController);
 router.post('/refresh', refreshController);
 router.post('/logout', logoutController);

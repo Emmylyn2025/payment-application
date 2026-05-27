@@ -2,16 +2,16 @@ import { hashPassword } from "../utils/password";
 import { prisma } from "../lib/prisma";
 import { UserReturnType } from "../types/types";
 import { removePassword } from "../utils/password";
-import { findUserByEmailWithPassword, getSession, newSession, updateUser } from "../serviceFunctions/findUsers";
+import { findUserByEmailWithPassword, getSession, newSession, updateUser, findUserById } from "../serviceFunctions/findUsers";
 import { comparePassword } from "../utils/password";
 import { generateTokens, verifyRefreshToken, generateRandomToken } from "../utils/token";
 import { hashToken } from "../utils/token";
-import { getCache, setCache } from "../utils/redisUtility";
+import { getCache, setCache, deleteCache } from "../utils/redisUtility";
 import { Request, Response } from "express";
 import { updateSession } from "../serviceFunctions/findUsers";
 import { appError } from "../utils/error";
 
-export async function registerUserService<T extends { name: string; email: string; password: string }>(body: T): Promise<Omit<UserReturnType, "password">> { 
+export async function registerUserService<T extends { name: string; email: string; password: string }>(body: T): Promise<Omit<UserReturnType, "password"> & {url: string}> { 
 
   const { name, email, password } = body;
 
@@ -36,7 +36,41 @@ export async function registerUserService<T extends { name: string; email: strin
   //Return user by removing password field
   const userWithoutPassword = removePassword(user);
 
-  return userWithoutPassword;
+  //Generate the the email verification token
+  const token = generateRandomToken();
+
+  //Hash token before saving in redis for 24 hours
+  await setCache(`emailverificationtoken:${hashToken(token)}`, user.id , 60 * 60 * 24);
+
+  //Generate url 
+  const url = `http://localhost:3000/v1/subscription/verify-email/${token}`;
+
+  return { ...userWithoutPassword, url };
+}
+
+export async function verifyEmailService(token: string) {
+  
+  //Hash token to check if it still exists in redis
+  const hashedToken = hashToken(token);
+
+  const userId = await getCache(`emailverificationtoken:${hashedToken}`);
+
+  if (!userId) throw new appError("Invalid or expired token", 400);
+
+  //Check if the user exists
+  const user = await findUserById(userId);
+
+  if (!user) throw new appError("This user is not found", 404);
+
+  //Update the user data
+  const updated = await updateUser(userId, {
+    emailVerified: true
+  });
+
+  //Delete from redis
+  await deleteCache(`emailverificationtoken:${hashedToken}`);
+
+  return updated;
 }
 
 export async function loginUserService<T extends { email: string; password: string, ip: string, userAgent: string }>(body: T, req?: Request) {
@@ -45,13 +79,15 @@ export async function loginUserService<T extends { email: string; password: stri
   const user = await findUserByEmailWithPassword(email);
 
   if (!user) {
-    throw new appError("Invalid credentials", 401);
+    console.log(`Invalid credentials from ${ip}`)
+    throw new appError(`Invalid credentials`, 401);
   }
 
   const isMatch = await comparePassword(password, user.password);
 
   if (!isMatch) {
-    throw new appError("Invalid credentials", 401);
+    console.log(`Invalid credentials from ${ip} email: ${email}`);
+    throw new appError(`Invalid credentials`, 401);
   }
 
   //Before creating a new session check if the user is currently logged in
@@ -94,7 +130,7 @@ export async function loginUserService<T extends { email: string; password: stri
   await setCache(`session:${session.id}`, JSON.stringify(updatedSession), 10 * 60); //Expire in 10 minutes
 
   return { ...userWithoutPassword, accessToken, refreshToken };
-}
+} 
 
 export async function forgotPasswordService<T extends { email: string }>(body: T) {
   

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        /* Reset styles for email clients */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        
+        /* Base styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #f0f4f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Container */
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Header with gradient */
+        .email-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 50%, #10b981 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .email-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.3;
+        }
+        
+        /* Logo/Icon area */
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .header-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        
+        .header-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+        
+        /* Body content */
+        .email-body {
+            padding: 40px 30px;
+            background-color: #ffffff;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        /* Link container */
+        .link-container {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .link-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, transparent 50%, rgba(16, 185, 129, 0.1) 50%);
+            border-bottom-left-radius: 100%;
+        }
+        
+        .link-label {
+            font-size: 14px;
+            color: #0ea5e9;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            transition: transform 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+        
+        /* URL display box */
+        .url-box {
+            background-color: #ffffff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #475569;
+        }
+        
+        /* Alternative link */
+        .alt-link {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 20px;
+        }
+        
+        .alt-link a {
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .social-links {
+            margin: 16px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #0ea5e9, #10b981);
+            border-radius: 50%;
+            margin: 0 6px;
+            text-align: center;
+            line-height: 36px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .social-links a:hover {
+            transform: scale(1.1);
+        }
+        
+        .company-name {
+            font-size: 14px;
+            color: #1e3a8a;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+        
+        /* Security note */
+        .security-note {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin-top: 24px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #92400e;
+        }
+        
+        .security-note strong {
+            color: #b45309;
+        }
+        
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 24px 0;
+        }
+        
+        /* Expiry notice */
+        .expiry-notice {
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        
+        .expiry-notice strong {
+            color: #0ea5e9;
+        }
+        
+        /* Responsive */
+        @media screen and (max-width: 600px) {
+            .email-wrapper {
+                width: 100% !important;
+                border-radius: 0 !important;
+            }
+            
+            .email-header {
+                padding: 30px 20px !important;
+            }
+            
+            .email-body {
+                padding: 30px 20px !important;
+            }
+            
+            .header-title {
+                font-size: 24px !important;
+            }
+            
+            .cta-button {
+                padding: 16px 32px !important;
+                font-size: 15px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!--[if mso]>
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="600" align="center" style="width:600px;">
+    <tr>
+    <td>
+    <![endif]-->
+    
+    <div style="padding: 20px 0;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 600px;">
+            <tr>
+                <td>
+                    <div class="email-wrapper">
+                        <!-- Header -->
+                        <div class="email-header">
+                            <div class="header-icon">
+                                <!-- Shield/Checkmark Icon -->
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <h1 class="header-title">Verify Your Email</h1>
+                            <p class="header-subtitle">Secure your account in just one click</p>
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="email-body">
+                            <h2 class="greeting">Welcome aboard! 👋</h2>
+                            <p class="message">
+                                Thanks for signing up! To complete your registration and secure your account, please click the button below. This verification link will expire in <strong style="color: #0ea5e9;">24 hours</strong>.
+                            </p>
+                            
+                            <p class="expiry-notice">
+                                ⏱️ Link expires in <strong>24 hours</strong>
+                            </p>
+                            
+                            <!-- Verification Link -->
+                            <div class="link-container">
+                                <div class="link-label">Click to Verify</div>
+                                
+                                <!-- Main CTA Button -->
+                                <a href="https://yourapp.com/verify?token=abc123xyz" class="cta-button">
+                                    Verify Email Address
+                                </a>
+                                
+                                <!-- Fallback URL -->
+                                <div class="url-box">
+                                    https://yourapp.com/verify?token=abc123xyz
+                                </div>
+                            </div>
+                            
+                            <p class="alt-link">
+                                If the button doesn't work, copy and paste the link above into your browser.
+                            </p>
+                            
+                            <div class="divider"></div>
+                            
+                            <!-- Security Note -->
+                            <div class="security-note">
+                                <strong>🔒 Security Tip:</strong> Never share this link with anyone. Our team will never ask for your verification link. If you didn't request this email, you can safely ignore it.
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="email-footer">
+                            <p class="footer-text">
+                                If you have any questions, contact us at <a href="mailto:support@yourapp.com" style="color: #0ea5e9; text-decoration: none;">support@yourapp.com</a>
+                            </p>
+                            
+                            <div class="social-links">
+                                <a href="#">𝕏</a>
+                                <a href="#">in</a>
+                                <a href="#">f</a>
+                                <a href="#">📸</a>
+                            </div>
+                            
+                            <div class="company-name">Your Company Name</div>
+                            <p class="footer-text" style="margin-top: 8px; font-size: 12px;">
+                                © 2026 Your Company. All rights reserved.<br>
+                                123 Tech Street, San Francisco, CA 94105
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <!--[if mso]>
+    </td>
+    </tr>
+    </table>
+    <![endif]-->
+</body>
+</html>

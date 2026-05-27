@@ -1,6 +1,6 @@
 import { appError, asyncHandler } from "../utils/error";
 import { Request, Response, NextFunction } from "express";
-import { registerUserService, loginUserService, forgotPasswordService, resetPasswordService } from "../services/auth.service";
+import { registerUserService, loginUserService, forgotPasswordService, resetPasswordService, verifyEmailService } from "../services/auth.service";
 import { createApiResponse } from "../utils/apiResponse";
 import { saveRefreshTokenInCookie, saveAccessTokenInCookie, removeAccessFromCookie, removeRefreshFromCookie } from "../utils/token";
 import { removeField } from "../utils/password";
@@ -8,12 +8,26 @@ import { hashToken } from "../utils/token";
 import { deleteCache, getCache, setCache } from "../utils/redisUtility";
 import { verifyRefreshToken, generateTokens } from "../utils/token";
 import { deleteSession, getSession, updateSession } from "../serviceFunctions/findUsers";
+import { sendEmailVerfication } from "../emails/email";
 
 export const registerUserController = asyncHandler(async (req: Request<{}, {}, { name: string; email: string; password: string }>, res: Response, next: NextFunction) => {
 
   const user = await registerUserService(req.body);
-  res.status(201).json(createApiResponse(true, user, "User registered successfully"));
+
+  await sendEmailVerfication(user.email, user.url);
+
+  const newUser = removeField(user, "url");
+
+  res.status(201).json(createApiResponse(true, newUser, "User registered successfully, email verification link has been sent to your email address, make sure you verify it before it expires"));
 });
+
+export const verifyEmailController = asyncHandler(async (req: Request<{ token: string }>, res: Response, next: NextFunction) => {
+  const token = req.params.token;
+
+  const updated = await verifyEmailService(token);
+
+  res.status(200).json(createApiResponse(true, { emailVer: updated.emailVerified }, "Email verified successfully"));
+})
 
 export const loginUserController = asyncHandler(async (req: Request<{}, {}, { email: string; password: string}>, res: Response, next: NextFunction) => { 
   const ip = req.ip!;

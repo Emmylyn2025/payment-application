@@ -105,6 +105,15 @@ export async function getSession(token: string) {
   });
 }
 
+export async function getSessionById(id: string) {
+  
+  return await prisma.session.findUnique({
+    where: {
+      id
+    }
+  });
+}
+
 export async function deleteSession(id: string) {
   
   await prisma.session.delete({
@@ -126,7 +135,7 @@ export async function updateSession(token: string, id: string, time: Date) {
   })
 }
 
-export async function updateUser(id: string, data: UpdateUserInput) {
+export async function updateUser(id: string, data: UpdateUserInput & {emailVerified?: boolean}) {
   return await prisma.user.update({
     where: {
       id
