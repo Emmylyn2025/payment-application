@@ -79,13 +79,15 @@ export async function loginUserService<T extends { email: string; password: stri
   const user = await findUserByEmailWithPassword(email);
 
   if (!user) {
-    throw new appError("Invalid credentials", 401);
+    console.log(`Invalid credentials from ${ip}`)
+    throw new appError(`Invalid credentials`, 401);
   }
 
   const isMatch = await comparePassword(password, user.password);
 
   if (!isMatch) {
-    throw new appError("Invalid credentials", 401);
+    console.log(`Invalid credentials from ${ip} email: ${email}`);
+    throw new appError(`Invalid credentials`, 401);
   }
 
   //Before creating a new session check if the user is currently logged in
